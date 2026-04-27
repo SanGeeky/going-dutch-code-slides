@@ -1,0 +1,1133 @@
+<!DOCTYPE html><html data-src-ver="3c2d7be6" lang="en"><head>
+
+
+
+
+<meta charset="utf-8">
+<title>Going Dutch Code — Splitting the Bill of Development</title>
+<meta name="viewport" content="width=1920, initial-scale=1">
+<link rel="stylesheet" href="colors_and_type.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="deck-stage.js"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="tweaks-panel.jsx" data-plugins="transform-react-jsx-source,om-src-id" data-filename="tweaks-panel.jsx"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #000; }
+  deck-stage { --deck-bg: #000; }
+
+  section {
+    box-sizing: border-box;
+    width: 1920px; height: 1080px;
+    position: relative; overflow: hidden;
+    color: var(--fg);
+    background: #fff;
+    padding: 80px 96px;
+    font-family: var(--font-sans);
+  }
+
+  /* ─── Header chrome ─────────────────────────── */
+  .chrome { position: absolute; left: 96px; right: 96px; top: 56px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; z-index: 5; }
+  .chrome .lockup { display: flex; align-items: center; gap: 12px; color: var(--fg); }
+  .chrome .lockup .wm { font-family: var(--font-display); font-weight: 600; font-size: 22px; letter-spacing: -0.01em; }
+  .chrome .meta { font-family: var(--font-mono); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-subtle); display: flex; gap: 32px; }
+  .chrome .meta .sep { color: var(--fg-subtle); opacity: 0.5; }
+
+  /* ─── Footer chrome ─────────────────────────── */
+  .footer { position: absolute; left: 96px; right: 96px; bottom: 48px; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-subtle); z-index: 5; }
+  .footer .left::before { content: "—"; margin-right: 14px; color: var(--fg); opacity: 0.6; }
+
+  /* dark variant */
+  .dark { background: #0A0B0C; color: #fff; }
+  .dark .chrome .lockup, .dark .chrome .lockup .wm { color: #fff; }
+  .dark .chrome .meta, .dark .footer { color: rgba(255,255,255,0.55); }
+  .dark .footer .left::before { color: rgba(255,255,255,0.6); }
+
+  /* ─── Common type helpers ───────────────────── */
+  .eyebrow { font-family: var(--font-mono); font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg); display: flex; align-items: center; gap: 16px; }
+  .eyebrow::before { content: ""; width: 56px; height: 2px; background: currentColor; display: inline-block; }
+  .dark .eyebrow { color: var(--aos-austin-orange-100); }
+
+  .h-display { font-family: var(--font-display); font-weight: 400; line-height: 0.98; letter-spacing: -0.015em; margin: 0; }
+  .h-sans { font-family: var(--font-sans); font-weight: 400; line-height: 1.02; letter-spacing: -0.015em; margin: 0; }
+
+  /* ───────────────────────────────────────────── */
+  /* SLIDE 01 · COVER                              */
+  /* ───────────────────────────────────────────── */
+  .s-cover { background: #0A0B0C; color: #fff; }
+  .s-cover .body { position: absolute; left: 96px; right: 96px; bottom: 96px; }
+  .s-cover .eyebrow { color: var(--aos-austin-orange-100); margin-bottom: 56px; }
+  .s-cover h1 { font-family: var(--font-display); font-weight: 400; font-size: 178px; line-height: 0.94; letter-spacing: -0.02em; max-width: 1500px; margin: 0; }
+  .s-cover h1 em { font-style: normal; color: var(--aos-austin-orange-100); }
+  .s-cover .sub { display: flex; align-items: center; gap: 32px; margin-top: 56px; font-family: var(--font-mono); font-weight: 700; font-size: 16px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.7); }
+  .s-cover .sub .dot { width: 6px; height: 6px; background: var(--aos-austin-orange-100); border-radius: 50%; }
+  .s-cover .trajectory { position: absolute; right: 0; top: -40px; bottom: 0; width: 720px; overflow: hidden; opacity: 0.55; pointer-events: none; z-index: 1; }
+  .s-cover .trajectory svg { position: absolute; right: -260px; top: 220px; color: var(--aos-austin-orange-100); }
+  .s-cover .ledger { position: absolute; right: 96px; top: 160px; display: flex; flex-direction: column; gap: 0; font-family: var(--font-mono); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; z-index: 8; background: #0A0B0C; padding: 24px 28px; clip-path: var(--chamfer-diagonal-12); }
+  .s-cover .ledger .row { display: flex; justify-content: space-between; gap: 80px; padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,0.12); min-width: 460px; }
+  .s-cover .ledger .row:first-child { border-top: 1px solid rgba(255,255,255,0.12); }
+  .s-cover .ledger .row.total { border-bottom: none; padding-top: 24px; }
+  .s-cover .ledger .label { color: rgba(255,255,255,0.55); }
+  .s-cover .ledger .val { color: #fff; }
+  .s-cover .ledger .row.total .val { color: var(--aos-austin-orange-100); }
+
+  /* ───────────────────────────────────────────── */
+  /* SLIDE 02 · MENU / INDEX                       */
+  /* ───────────────────────────────────────────── */
+  .s-menu { background: #fff; }
+  .s-menu .left { position: absolute; left: 96px; top: 200px; width: 620px; }
+  .s-menu .menu-word { font-family: var(--font-display); font-weight: 400; font-size: 200px; line-height: 0.92; letter-spacing: -0.02em; color: var(--fg); margin: 0; }
+  .s-menu .left .cap { margin-top: 56px; font-family: var(--font-mono); font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-muted); max-width: 480px; line-height: 1.4; }
+  .s-menu .right { position: absolute; left: 800px; right: 96px; top: 180px; bottom: 180px; display: flex; flex-direction: column; }
+  .s-menu .item { display: grid; grid-template-columns: 110px 1fr; gap: 32px; align-items: center; padding: 28px 0; border-bottom: 1px solid var(--border); flex: 1; }
+  .s-menu .item:first-child { border-top: 1px solid var(--border); }
+  .s-menu .item .n { font-family: var(--font-mono); font-weight: 500; font-size: 56px; letter-spacing: -0.01em; color: var(--fg); line-height: 1; }
+  .s-menu .item .body-i { display: flex; flex-direction: column; gap: 6px; }
+  .s-menu .item h3 { font-family: var(--font-display); font-weight: 400; font-size: 38px; line-height: 1.05; letter-spacing: -0.01em; color: var(--fg); margin: 0; text-transform: none; }
+  .s-menu .item .sub { font-family: var(--font-mono); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-subtle); }
+  .s-menu .item.recap .n { color: var(--aos-austin-orange-100); }
+  .s-menu .item.recap h3 em { font-style: normal; color: var(--aos-austin-orange-100); }
+
+  /* ───────────────────────────────────────────── */
+  /* SECTION DIVIDER — Course break                */
+  /* ───────────────────────────────────────────── */
+  .s-section { background: #FFFFFF; padding: 0; }
+  .s-section .rule-top { position: absolute; left: 96px; right: 96px; top: 96px; height: 1px; background: var(--fg); }
+  .s-section .rule-bot { position: absolute; left: 96px; right: 96px; bottom: 96px; height: 1px; background: var(--fg); }
+
+  /* override the page chrome JUST on section dividers, to match the simple "SECTION BREAK / NN" treatment in the reference */
+  .s-section .chrome { top: 56px; }
+  .s-section .chrome .lockup { color: var(--fg); }
+  .s-section .chrome .lockup .wm { font-family: 'Inter Tight', var(--font-sans); font-weight: 500; font-size: 18px; letter-spacing: -0.005em; }
+  .s-section .chrome .meta { font-family: 'Roboto Mono', var(--font-mono); font-weight: 700; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg); }
+  .s-section .chrome .meta .sep, .s-section .chrome .meta .extra { display: none; }
+  .s-section .chrome .meta .center { position: absolute; left: 50%; transform: translateX(-50%); }
+
+  /* body block: vertically centered, left aligned */
+  .s-section .body { position: absolute; left: 96px; right: 96px; top: 50%; transform: translateY(-50%); max-width: 1200px; }
+  .s-section .label { font-family: 'Roboto Mono', var(--font-mono); font-weight: 700; font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg); margin: 0 0 32px; }
+  .s-section h2 { font-family: 'Replica', var(--font-sans); font-weight: 500; font-size: 144px; line-height: 0.95; letter-spacing: -0.02em; margin: 0 0 36px; color: var(--fg); text-transform: uppercase; }
+  .s-section .desc { font-family: 'Roboto Mono', var(--font-mono); font-weight: 400; font-size: 18px; line-height: 1.55; letter-spacing: 0.005em; color: var(--fg); max-width: 720px; margin: 0; }
+  .s-section .desc em { font-style: italic; font-weight: 400; }
+
+  /* big numeral: vertically centered, pulled in from the right edge, Replica */
+  .s-section .big-num { position: absolute; right: 200px; top: 50%; transform: translateY(-50%); font-family: 'Replica', var(--font-sans); font-weight: 400; font-size: 520px; line-height: 0.78; letter-spacing: -0.04em; color: var(--fg); }
+
+  /* simple footer */
+  .s-section .footer { position: absolute; left: 96px; right: 96px; bottom: 56px; display: flex; justify-content: space-between; align-items: baseline; font-family: 'Roboto Mono', var(--font-mono); font-weight: 700; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg); }
+  .s-section .footer .lhs, .s-section .footer .rhs { font-family: inherit; font-size: inherit; letter-spacing: inherit; color: inherit; }
+
+  /* ───────────────────────────────────────────── */
+  /* SLIDE 05 · My Journey — vertical timeline    */
+  /* ───────────────────────────────────────────── */
+  .s-journey { background: #fff; }
+
+  .s-journey .anchor { position: absolute; left: 96px; top: 180px; width: 620px; }
+  .s-journey .anchor .eyebrow { margin-bottom: 28px; }
+  .s-journey .anchor h2 { font-family: 'Replica', var(--font-sans); font-weight: 400; font-size: 64px; line-height: 1.0; letter-spacing: -0.018em; margin: 0; color: var(--fg); }
+  .s-journey .anchor h2 em { font-style: normal; color: var(--aos-austin-orange-100); font-family: var(--font-display); }
+  .s-journey .anchor .sub { font-family: 'Replica', var(--font-sans); font-weight: 400; font-size: 18px; color: var(--fg-muted); margin-top: 26px; line-height: 1.5; max-width: 540px; }
+  .s-journey .anchor .sub b { color: var(--fg); font-weight: 700; }
+  .s-journey .anchor .legend { position: absolute; bottom: -380px; left: 0; font-family: 'Roboto Mono', var(--font-mono); font-weight: 700; font-size: 12px; letter-spacing: 0.18em; color: var(--fg-subtle); display: flex; flex-direction: column; gap: 10px; }
+  .s-journey .anchor .legend .row { display: flex; align-items: center; gap: 10px; }
+  .s-journey .anchor .legend .sw { width: 14px; height: 14px; background: var(--fg); border-radius: 50%; }
+  .s-journey .anchor .legend .sw.accent { background: var(--aos-austin-orange-100); }
+
+  .s-journey .spine { position: absolute; right: 96px; top: 130px; bottom: 110px; left: 780px; display: flex; flex-direction: column; }
+  .s-journey .beat { display: grid; grid-template-columns: 100px 56px 1fr; column-gap: 24px; flex: 1; padding: 18px 0; border-top: 1px solid var(--border); align-items: start; position: relative; }
+  .s-journey .beat:first-child { border-top: none; padding-top: 6px; }
+  .s-journey .beat:last-child { padding-bottom: 6px; }
+
+  .s-journey .beat .yr { font-family: 'Roboto Mono', var(--font-mono); font-weight: 700; font-size: 13px; letter-spacing: 0.14em; color: var(--fg-subtle); padding-top: 6px; }
+  .s-journey .beat.now .yr { color: var(--aos-austin-orange-100); }
+
+  .s-journey .beat .rail { position: relative; align-self: stretch; display: flex; justify-content: center; }
+  .s-journey .beat .rail::before { content: ""; position: absolute; top: 0; bottom: -18px; left: 50%; width: 2px; background: var(--fg); transform: translateX(-50%); }
+  .s-journey .beat:last-child .rail::before { bottom: 0; }
+  .s-journey .beat .rail .dot { position: relative; z-index: 2; width: 18px; height: 18px; background: var(--fg); border-radius: 50%; margin-top: 8px; box-shadow: 0 0 0 6px #fff; }
+  .s-journey .beat.now .rail .dot { background: var(--aos-austin-orange-100); width: 26px; height: 26px; margin-top: 4px; box-shadow: 0 0 0 6px #fff, 0 0 0 12px rgba(255,92,32,0.18); }
+
+  .s-journey .beat .body { padding-right: 16px; }
+  .s-journey .beat .n { font-family: 'Roboto Mono', var(--font-mono); font-weight: 700; font-size: 11px; letter-spacing: 0.18em; color: var(--fg-subtle); text-transform: uppercase; margin-bottom: 8px; }
+  .s-journey .beat.now .n { color: var(--aos-austin-orange-100); }
+  .s-journey .beat h3 { font-family: 'Replica', var(--font-sans); font-weight: 700; font-size: 26px; line-height: 1.1; letter-spacing: 0.005em; margin: 0 0 8px; color: var(--fg); text-transform: uppercase; }
+  .s-journey .beat h3 em { font-style: normal; color: var(--aos-austin-orange-100); font-family: var(--font-display); text-transform: none; font-weight: 400; }
+  .s-journey .beat p { font-family: 'Replica', var(--font-sans); font-weight: 400; font-size: 16px; line-height: 1.45; color: var(--fg-muted); margin: 0; max-width: 720px; }
+  .s-journey .beat p b { color: var(--fg); font-weight: 700; }
+
+  /* ───────────────────────────────────────────── */
+  /* SLIDE 03 · The Lore — content                 */
+  /* ───────────────────────────────────────────── */
+  .s-lore .top { position: absolute; left: 96px; right: 96px; top: 180px; }
+  .s-lore .top .eyebrow { margin-bottom: 32px; }
+  .s-lore .top h2 { font-family: var(--font-sans); font-weight: 400; font-size: 88px; line-height: 1.0; letter-spacing: -0.018em; max-width: 1500px; margin: 0; }
+  .s-lore .top h2 em { font-style: normal; color: var(--aos-austin-orange-100); font-family: var(--font-display); }
+
+  .pillars { position: absolute; left: 96px; right: 96px; bottom: 130px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--fg); }
+  .pillar { padding: 40px 40px 0 0; border-right: 1px solid var(--border); }
+  .pillar:last-child { border-right: none; padding-right: 0; }
+  .pillar:not(:first-child) { padding-left: 40px; }
+  .pillar .num { font-family: var(--font-mono); font-weight: 700; font-size: 12px; letter-spacing: 0.08em; color: var(--fg-subtle); margin-bottom: 24px; }
+  .pillar .title { font-family: var(--font-sans); font-weight: 700; font-size: 30px; line-height: 1.1; text-transform: uppercase; letter-spacing: 0.005em; margin: 0 0 20px; color: var(--fg); }
+  .pillar .title em { font-style: normal; color: var(--aos-austin-orange-100); }
+  .pillar .body-c { font-family: var(--font-sans); font-weight: 400; font-size: 20px; line-height: 1.45; color: var(--fg-muted); }
+  .pillar .body-c b { color: var(--fg); font-weight: 700; }
+
+  /* ───────────────────────────────────────────── */
+  /* SLIDE 05 · Two Sides — split blue/orange      */
+  /* ───────────────────────────────────────────── */
+  .s-two { padding: 0; background: #fff; }
+  .s-two .head { position: absolute; left: 96px; right: 96px; top: 180px; z-index: 4; }
+  .s-two .head .eyebrow { color: var(--fg-subtle); margin-bottom: 24px; }
+  .s-two .head h2 { font-family: var(--font-sans); font-weight: 400; font-size: 54px; line-height: 1.05; color: var(--fg); max-width: 1100px; letter-spacing: -0.015em; margin: 0; }
+  .s-two .split { position: absolute; left: 96px; right: 96px; bottom: 110px; top: 380px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  .s-two .col { padding: 56px; color: var(--fg); position: relative; display: flex; flex-direction: column; background: transparent; border: 2px solid var(--fg); }
+  .s-two .col.blue { border-color: var(--aos-lviv-blue-100); }
+  .s-two .col.orange { border-color: var(--aos-austin-orange-100); }
+  .s-two .col.blue .name { color: var(--aos-lviv-blue-100); }
+  .s-two .col.orange .name { color: var(--aos-austin-orange-100); }
+  .s-two .col .name { font-family: var(--font-display); font-weight: 400; font-size: 64px; line-height: 1.0; letter-spacing: -0.015em; margin: 0 0 12px; }
+  .s-two .col .stance { font-family: var(--font-mono); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-subtle); margin-bottom: 36px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+  .s-two .col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; }
+  .s-two .col li { display: grid; grid-template-columns: 24px 1fr; gap: 18px; align-items: flex-start; }
+  .s-two .col.blue li .k { color: var(--aos-lviv-blue-100); }
+  .s-two .col.orange li .k { color: var(--aos-austin-orange-100); }
+  .s-two .col li .k { font-family: var(--font-mono); font-weight: 700; font-size: 13px; padding-top: 4px; }
+  .s-two .col li .v { font-family: var(--font-sans); font-weight: 400; font-size: 16px; line-height: 1.4; color: var(--fg-muted); }
+  .s-two .col li .v b { font-weight: 700; text-transform: uppercase; font-size: 14px; letter-spacing: 0.04em; display: block; margin-bottom: 4px; color: var(--fg); }
+  .s-two .chrome { color: var(--fg); }
+  .s-two .chrome .lockup, .s-two .chrome .lockup .wm { color: var(--fg); }
+  .s-two .chrome .meta { color: var(--fg-subtle); }
+  .s-two .footer { color: var(--fg); }
+  .s-two .footer .left::before { color: var(--fg-subtle); }
+
+  /* ───────────────────────────────────────────── */
+  /* SLIDE 07 · Token Tab                          */
+  /* ───────────────────────────────────────────── */
+  .s-token { background: #fff; color: var(--fg); }
+  .s-token .top { position: absolute; left: 96px; right: 96px; top: 180px; max-width: 880px; }
+  .s-token .eyebrow { color: var(--aos-austin-orange-100); margin-bottom: 28px; }
+  .s-token .top h2 { font-family: var(--font-sans); font-weight: 400; font-size: 84px; line-height: 1.0; letter-spacing: -0.018em; color: var(--fg); margin: 0; }
+  .s-token .top h2 em { font-style: normal; color: var(--aos-austin-orange-100); font-family: var(--font-display); }
+  .s-token .top .lede { font-family: var(--font-sans); font-weight: 400; font-size: 22px; line-height: 1.45; color: var(--fg-muted); margin-top: 36px; max-width: 720px; }
+  .s-token .top .lede em { font-style: normal; color: var(--aos-austin-orange-100); font-weight: 700; }
+  .s-token .top .lede b { color: var(--fg); font-weight: 700; }
+
+  .s-token .receipt { position: absolute; right: 96px; top: 200px; bottom: 110px; width: 720px; background: #fff; border: 1px solid var(--border); padding: 56px 56px 64px; display: flex; flex-direction: column; font-family: 'Roboto Mono', var(--font-mono); }
+  .s-token .receipt .r-head { display: grid; grid-template-columns: 1fr auto; align-items: baseline; padding-bottom: 18px; border-bottom: 1px solid var(--fg); margin-bottom: 28px; }
+  .s-token .receipt .r-head .title { font-family: 'Roboto Mono', var(--font-mono); font-weight: 700; font-size: 22px; letter-spacing: 0.06em; color: var(--fg); }
+  .s-token .receipt .r-head .ticket { font-family: 'Roboto Mono', var(--font-mono); font-weight: 400; font-size: 14px; letter-spacing: 0.08em; color: var(--fg-subtle); }
+  .s-token .receipt .lines { display: flex; flex-direction: column; }
+  .s-token .receipt .ln { display: grid; grid-template-columns: 1fr auto; gap: 24px; padding: 14px 0; align-items: baseline; }
+  .s-token .receipt .ln .lbl { font-family: 'Roboto Mono', var(--font-mono); font-weight: 400; font-size: 18px; color: var(--fg); letter-spacing: 0.01em; }
+  .s-token .receipt .ln .lbl .mono { color: var(--fg-muted); }
+  .s-token .receipt .ln .amt { font-family: 'Roboto Mono', var(--font-mono); font-weight: 700; font-size: 18px; letter-spacing: 0.04em; }
+  .s-token .receipt .ln.good .amt { color: var(--aos-lviv-blue-100); }
+  .s-token .receipt .ln.bad .amt { color: var(--aos-error-1); }
+  .s-token .receipt .double-rule { border-bottom: 1px solid var(--fg); margin-top: 8px; padding-top: 14px; }
+  .s-token .receipt .double-rule + .double-rule { margin-top: 4px; }
+  .s-token .receipt .total { display: grid; grid-template-columns: 1fr auto; align-items: end; margin-top: auto; padding-top: 36px; }
+  .s-token .receipt .total .t-lbl { font-family: 'Roboto Mono', var(--font-mono); font-weight: 700; font-size: 22px; letter-spacing: 0.06em; color: var(--fg); }
+  .s-token .receipt .total .t-amt { font-family: var(--font-display); font-weight: 400; font-size: 96px; line-height: 0.9; letter-spacing: -0.02em; color: var(--aos-austin-orange-100); }
+  .s-token .receipt .footnote { font-family: 'Roboto Mono', var(--font-mono); font-weight: 400; font-size: 12px; letter-spacing: 0.1em; line-height: 1.5; color: var(--fg-subtle); text-transform: uppercase; margin-top: 20px; max-width: 540px; margin-left: auto; text-align: right; }
+
+  .s-token .principle { position: absolute; left: 96px; bottom: 110px; max-width: 880px; padding: 32px 0 0; border-top: 1px solid var(--fg); }
+  .s-token .principle .tag { font-family: var(--font-mono); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--aos-austin-orange-100); margin-bottom: 18px; }
+  .s-token .principle .quote { font-family: var(--font-display); font-weight: 400; font-size: 38px; line-height: 1.1; letter-spacing: -0.012em; color: var(--fg); }
+  .s-token .principle .sub { margin-top: 18px; font-family: var(--font-sans); font-size: 17px; line-height: 1.5; color: var(--fg-muted); max-width: 760px; }
+  .s-token .principle .sub b { color: var(--fg); font-weight: 700; }
+
+  /* ───────────────────────────────────────────── */
+  /* SLIDE 08 · The Rules                          */
+  /* ───────────────────────────────────────────── */
+  .s-rules { background: #fff; color: var(--fg); }
+  .s-rules .top { position: absolute; left: 96px; right: 96px; top: 180px; }
+  .s-rules .top .eyebrow { color: var(--aos-austin-orange-100); margin-bottom: 28px; }
+  .s-rules .top h2 { font-family: var(--font-sans); font-weight: 400; font-size: 84px; line-height: 1.0; letter-spacing: -0.018em; color: var(--fg); margin: 0; max-width: 1500px; }
+  .s-rules .top h2 em { font-style: normal; color: var(--aos-austin-orange-100); font-family: var(--font-display); }
+  .s-rules .top .lede { font-family: var(--font-sans); font-weight: 400; font-size: 22px; line-height: 1.45; color: var(--fg-muted); margin-top: 32px; max-width: 1100px; }
+
+  .s-rules .grid { position: absolute; left: 96px; right: 96px; bottom: 110px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px; }
+  .s-rules .card { border: 1px solid var(--border); padding: 36px 36px 40px; display: flex; flex-direction: column; min-height: 220px; }
+  .s-rules .card .num { font-family: 'Roboto Mono', var(--font-mono); font-weight: 700; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--aos-austin-orange-100); margin-bottom: 22px; }
+  .s-rules .card h3 { font-family: var(--font-sans); font-weight: 700; font-size: 26px; line-height: 1.15; letter-spacing: 0.005em; text-transform: uppercase; color: var(--fg); margin: 0 0 16px; }
+  .s-rules .card p { font-family: var(--font-sans); font-weight: 400; font-size: 19px; line-height: 1.45; color: var(--fg-muted); margin: 0; }
+  .s-rules .card p b { color: var(--fg); font-weight: 700; }
+
+  /* ───────────────────────────────────────────── */
+  /* SLIDE 09 · Demo checklist                     */
+  /* ───────────────────────────────────────────── */
+  .s-demo { background: #fff; }
+  .s-demo .top { position: absolute; left: 96px; right: 96px; top: 180px; }
+  .s-demo .top h2 { font-family: var(--font-display); font-weight: 400; font-size: 100px; line-height: 0.98; letter-spacing: -0.018em; max-width: 1300px; margin: 0; }
+  .s-demo .top h2 em { font-style: normal; color: var(--aos-austin-orange-100); }
+  .s-demo .top .lede { margin-top: 32px; font-family: var(--font-mono); font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-subtle); }
+  .s-demo .checks { position: absolute; left: 96px; right: 96px; bottom: 130px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+  .s-demo .check { background: var(--aos-neutral-200); padding: 40px 36px 36px; clip-path: var(--chamfer-diagonal-24); display: flex; flex-direction: column; gap: 20px; min-height: 320px; }
+  .s-demo .check .step { font-family: var(--font-mono); font-weight: 700; font-size: 13px; letter-spacing: 0.1em; color: var(--fg); }
+  .s-demo .check .step span { color: var(--aos-austin-orange-100); margin-right: 12px; }
+  .s-demo .check h3 { font-family: var(--font-sans); font-weight: 700; font-size: 28px; line-height: 1.1; text-transform: uppercase; letter-spacing: 0.005em; margin: 0; color: var(--fg); }
+  .s-demo .check ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
+  .s-demo .check ul li { font-family: var(--font-mono); font-weight: 500; font-size: 14px; line-height: 1.4; color: var(--fg-muted); padding-left: 18px; position: relative; }
+  .s-demo .check ul li::before { content: ""; position: absolute; left: 0; top: 8px; width: 8px; height: 2px; background: var(--fg); }
+
+  /* ───────────────────────────────────────────── */
+  /* SLIDE 11 · The Payoff                          */
+  /* ───────────────────────────────────────────── */
+  .s-payoff { background: var(--aos-neutral-200); }
+  .s-payoff .top { position: absolute; left: 96px; right: 96px; top: 180px; }
+  .s-payoff .top h2 { font-family: var(--font-display); font-weight: 400; font-size: 96px; line-height: 0.98; letter-spacing: -0.018em; max-width: 1300px; margin: 0; color: var(--fg); margin-top: 8px; }
+  .s-payoff .top h2 em { font-style: normal; color: var(--aos-austin-orange-100); }
+  .s-payoff .deal { position: absolute; left: 96px; right: 96px; bottom: 200px; display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .s-payoff .side { padding: 48px 56px 48px 48px; background: #fff; }
+  .s-payoff .side.them { background: #0A0B0C; color: #fff; }
+  .s-payoff .side.them h3 { color: #fff; }
+  .s-payoff .side .tag { font-family: var(--font-mono); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+  .s-payoff .side.us .tag { color: var(--aos-austin-orange-100); }
+  .s-payoff .side.them .tag { color: var(--aos-lviv-blue-75); }
+  .s-payoff .side h3 { font-family: var(--font-sans); font-weight: 700; font-size: 32px; line-height: 1.1; text-transform: uppercase; letter-spacing: 0.005em; margin: 0 0 28px; }
+  .s-payoff .side ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; }
+  .s-payoff .side li { font-family: var(--font-sans); font-weight: 400; font-size: 21px; line-height: 1.4; padding-left: 24px; position: relative; }
+  .s-payoff .side.us li { color: var(--fg-muted); }
+  .s-payoff .side.them li { color: rgba(255,255,255,0.85); }
+  .s-payoff .side li::before { content: ""; position: absolute; left: 0; top: 14px; width: 12px; height: 2px; background: currentColor; opacity: 0.5; }
+  .s-payoff .craft { position: absolute; left: 96px; right: 96px; bottom: 96px; padding: 24px 0 0; border-top: 1px solid var(--fg); display: flex; justify-content: space-between; align-items: baseline; gap: 48px; }
+  .s-payoff .craft .lhs { font-family: var(--font-mono); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg); }
+  .s-payoff .craft .rhs { font-family: var(--font-display); font-weight: 400; font-size: 36px; line-height: 1.15; letter-spacing: -0.01em; color: var(--fg); max-width: 1100px; text-align: right; }
+  .s-payoff .craft .rhs em { font-style: normal; color: var(--aos-austin-orange-100); }
+
+  /* ───────────────────────────────────────────── */
+  /* SLIDE 12 · Recap                               */
+  /* ───────────────────────────────────────────── */
+  .s-recap { background: #fff; }
+  .s-recap .top { position: absolute; left: 96px; right: 96px; top: 180px; }
+  .s-recap .top h2 { font-family: var(--font-display); font-weight: 400; font-size: 120px; line-height: 0.96; letter-spacing: -0.018em; max-width: 1500px; margin: 0; }
+  .s-recap .top h2 em { font-style: normal; color: var(--aos-austin-orange-100); }
+  .s-recap .takeaways { position: absolute; left: 96px; right: 96px; bottom: 220px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+  .s-recap .ta { display: flex; flex-direction: column; gap: 16px; padding-top: 28px; border-top: 2px solid var(--fg); }
+  .s-recap .ta .num { font-family: var(--font-mono); font-weight: 700; font-size: 13px; letter-spacing: 0.1em; color: var(--aos-austin-orange-100); }
+  .s-recap .ta h3 { font-family: var(--font-sans); font-weight: 700; font-size: 24px; line-height: 1.1; text-transform: uppercase; letter-spacing: 0.005em; margin: 0; color: var(--fg); }
+  .s-recap .ta p { font-family: var(--font-sans); font-weight: 400; font-size: 17px; line-height: 1.45; color: var(--fg-muted); margin: 0; }
+  .s-recap .closing { position: absolute; left: 96px; right: 96px; bottom: 96px; padding-top: 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: baseline; }
+  .s-recap .closing .lhs { font-family: var(--font-mono); font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg); }
+  .s-recap .closing .lhs span { color: var(--aos-austin-orange-100); margin-right: 12px; }
+  .s-recap .closing .rhs { font-family: var(--font-mono); font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-subtle); }
+
+</style>
+<style id="deck-stage-print-page">@page { size: 1920px 1080px; margin: 0; } @media print { html, body { margin: 0 !important; padding: 0 !important; background: none !important; overflow: visible !important; height: auto !important; } * { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }</style>
+
+<body data-cc-id="cc-1" style="font-family: Replica; cursor: crosshair;">
+
+<deck-stage data-cc-id="cc-1">
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- 01 · COVER                                                   -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <section class="s-cover" data-screen-label="01 Cover" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="0">
+    <div class="chrome">
+      <div class="lockup">
+        <svg viewBox="0 0 58 66" width="32" height="36" fill="currentColor"><path d="M 23.324 36.513 L 22.221 37.342 L 1.151 40.835 L 0 41.7 L 0.339 42.567 L 18.358 46.1 L 18.363 46.098 L 19.16 48.134 L 13.027 65.259 L 13.547 66 L 14.764 65.259 L 34.678 29.487 L 35.779 28.658 L 56.851 25.165 L 58 24.3 L 57.661 23.436 L 39.642 19.9 L 39.64 19.902 L 38.84 17.866 L 44.975 0.741 L 44.453 0 L 43.236 0.741 L 23.324 36.513 Z"></path></svg>
+        <span class="wm">SoftServe</span>
+      </div>
+      <div class="meta"><span>Going Dutch Code</span><span class="sep">/</span><span>01</span></div>
+    </div>
+
+    <div class="trajectory">
+      <svg width="900" height="900" viewBox="0 0 58 66" fill="currentColor"><path d="M 23.324 36.513 L 22.221 37.342 L 1.151 40.835 L 0 41.7 L 0.339 42.567 L 18.358 46.1 L 18.363 46.098 L 19.16 48.134 L 13.027 65.259 L 13.547 66 L 14.764 65.259 L 34.678 29.487 L 35.779 28.658 L 56.851 25.165 L 58 24.3 L 57.661 23.436 L 39.642 19.9 L 39.64 19.902 L 38.84 17.866 L 44.975 0.741 L 44.453 0 L 43.236 0.741 L 23.324 36.513 Z"></path></svg>
+    </div>
+
+    <div class="ledger">
+      <div class="row"><span class="label">Creative Logic</span><span class="val">Paid by Human</span></div>
+      <div class="row"><span class="label">Unit Testing</span><span class="val">Paid by AI</span></div>
+      <div class="row"><span class="label">Bug Fixing</span><span class="val">50 / 50</span></div>
+      <div class="row total"><span class="label">Total</span><span class="val">Going Dutch</span></div>
+    </div>
+
+    <div class="body">
+      <div class="eyebrow">A talk for engineers adopting agentic tools</div>
+      <h1>Going<br>Dutch <em>Code.</em></h1>
+      <div class="sub">
+        <span>Splitting the bill of development</span>
+        <span class="dot"></span>
+        <span>Cursor · Claude Code · Orchestration</span>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span class="left">DAVID PINCHAO · SOFTSERVE</span>
+      <span>01 / 14</span>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- 02 · MENU / INDEX                                            -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <section class="s-menu" data-screen-label="02 Menu" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="1">
+    <div class="chrome">
+      <div class="lockup">
+        <svg viewBox="0 0 58 66" width="32" height="36" fill="currentColor"><path d="M 23.324 36.513 L 22.221 37.342 L 1.151 40.835 L 0 41.7 L 0.339 42.567 L 18.358 46.1 L 18.363 46.098 L 19.16 48.134 L 13.027 65.259 L 13.547 66 L 14.764 65.259 L 34.678 29.487 L 35.779 28.658 L 56.851 25.165 L 58 24.3 L 57.661 23.436 L 39.642 19.9 L 39.64 19.902 L 38.84 17.866 L 44.975 0.741 L 44.453 0 L 43.236 0.741 L 23.324 36.513 Z"></path></svg>
+        <span class="wm">SoftServe</span>
+      </div>
+      <div class="meta"><span>Going Dutch Code</span><span class="sep">/</span><span>02</span></div>
+    </div>
+
+    <div class="left">
+      <h2 class="menu-word">MENU</h2>
+      <div class="cap">— What we're ordering tonight</div>
+    </div>
+
+    <div class="right">
+      <div class="item">
+        <div class="n">01</div>
+        <div class="body-i">
+          <h3>The Lore</h3>
+          <div class="sub">FROM SOLO DEV TO AGENTIC SOFTWARE ENGINEER</div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="n">02</div>
+        <div class="body-i">
+          <h3>Two Sides of the Same Coin</h3>
+          <div class="sub">CURSOR IDE-FIRST · CLAUDE CODE AGENT-FIRST</div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="n">03</div>
+        <div class="body-i">
+          <h3>The Token Tab</h3>
+          <div class="sub">ECONOMICS OF AGENTIC ENGINEERING</div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="n">04</div>
+        <div class="body-i">
+          <h3>Real-World Logic</h3>
+          <div class="sub">LIVE DEMO — ONE BUG, TWO AGENTS</div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="n">05</div>
+        <div class="body-i">
+          <h3>The Payoff</h3>
+          <div class="sub">OUTSOURCING GRUNT WORK FOR CRAFTSMANSHIP</div>
+        </div>
+      </div>
+      <div class="item recap">
+        <div class="n">06</div>
+        <div class="body-i">
+          <h3><em>Recap</em></h3>
+          <div class="sub">WHAT TO TAKE TO YOUR NEXT SPRINT</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- 03 · SECTION DIVIDER · The Lore                              -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <section class="s-section" data-screen-label="03 Section · The Lore" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" style="font-family: ui-sans-serif">
+    <div class="chrome">
+      <div class="lockup">
+        <svg viewBox="0 0 58 66" width="32" height="36" fill="currentColor"><path d="M 23.324 36.513 L 22.221 37.342 L 1.151 40.835 L 0 41.7 L 0.339 42.567 L 18.358 46.1 L 18.363 46.098 L 19.16 48.134 L 13.027 65.259 L 13.547 66 L 14.764 65.259 L 34.678 29.487 L 35.779 28.658 L 56.851 25.165 L 58 24.3 L 57.661 23.436 L 39.642 19.9 L 39.64 19.902 L 38.84 17.866 L 44.975 0.741 L 44.453 0 L 43.236 0.741 L 23.324 36.513 Z"></path></svg>
+        <span class="wm">SoftServe</span>
+      </div>
+      <div class="meta"><span>03</span></div>
+    </div>
+
+    <div class="rule-top"></div>
+    <div class="big-num">1</div>
+
+    <div class="body">
+      <div class="label" style="font-family: &quot;Roboto Mono&quot;">— Course 01</div>
+      <h2>The Lore</h2>
+      <p class="desc" style="font-family: &quot;Roboto Mono&quot;">From solo dev to <em>Agentic Software Engineer</em> &mdash; the day the job description quietly changed underneath us.</p>
+    </div>
+
+    <div class="rule-bot"></div>
+
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- 03 · The Lore — content                                      -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <section class="s-lore" data-screen-label="04 The Lore" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="3">
+    <div class="chrome">
+      <div class="lockup">
+        <svg viewBox="0 0 58 66" width="32" height="36" fill="currentColor"><path d="M 23.324 36.513 L 22.221 37.342 L 1.151 40.835 L 0 41.7 L 0.339 42.567 L 18.358 46.1 L 18.363 46.098 L 19.16 48.134 L 13.027 65.259 L 13.547 66 L 14.764 65.259 L 34.678 29.487 L 35.779 28.658 L 56.851 25.165 L 58 24.3 L 57.661 23.436 L 39.642 19.9 L 39.64 19.902 L 38.84 17.866 L 44.975 0.741 L 44.453 0 L 43.236 0.741 L 23.324 36.513 Z"></path></svg>
+        <span class="wm">SoftServe</span>
+      </div>
+      <div class="meta"><span>Going Dutch Code</span><span class="sep">/</span><span>04</span></div>
+    </div>
+
+    <div class="top">
+      <div class="eyebrow">THE ROLE SHIFT · WHY IT MATTERS</div>
+      <h2 style="font-weight: 400; font-size: 100px">Master the <em>magic wand.</em><br>Don't just wave it.</h2>
+    </div>
+
+    <div class="pillars">
+      <div class="pillar">
+        <div class="num">01 — YESTERDAY</div>
+        <h3 class="title">Lines and mistakes</h3>
+        <p class="body-c">Paying the whole bill with your own hands used to come with <b>typos, complex codebases and endless testing</b>.</p>
+      </div>
+      <div class="pillar">
+        <div class="num">02 — TODAY</div>
+        <h3 class="title">Outsource the <em>grunt work</em></h3>
+        <p class="body-c">Repetitive, and exhaustive tasks go to agents. <b>You stop paying 100% of the bill</b> with manual effort. Boilerplate, tests, refactors — delegate.</p>
+      </div>
+      <div class="pillar">
+        <div class="num">03 — YOUR VALUE</div>
+        <h3 class="title">Conduct the orchestra</h3>
+        <p class="body-c"><b>Knowing which pieces to move</b> so the product is excellent, and easily remember — that is.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- 05 · The Lore — My Journey (personal timeline)               -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <section class="s-journey" data-screen-label="05 My Journey" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="4">
+    <div class="chrome">
+      <div class="lockup">
+        <svg viewBox="0 0 58 66" width="32" height="36" fill="currentColor"><path d="M 23.324 36.513 L 22.221 37.342 L 1.151 40.835 L 0 41.7 L 0.339 42.567 L 18.358 46.1 L 18.363 46.098 L 19.16 48.134 L 13.027 65.259 L 13.547 66 L 14.764 65.259 L 34.678 29.487 L 35.779 28.658 L 56.851 25.165 L 58 24.3 L 57.661 23.436 L 39.642 19.9 L 39.64 19.902 L 38.84 17.866 L 44.975 0.741 L 44.453 0 L 43.236 0.741 L 23.324 36.513 Z"></path></svg>
+        <span class="wm">SoftServe</span>
+      </div>
+      <div class="meta"><span>Going Dutch Code</span><span class="sep">/</span><span>05</span></div>
+    </div>
+
+    <div class="anchor">
+      <div class="eyebrow">MY JOURNEY · FROM SKEPTIC TO ORCHESTRATOR</div>
+      <h2>Five beats from <em>fear</em><br>to <em>flow.</em></h2>
+      <p class="sub">“If you don't know where you are going, any road will get you there.”<br>— Lewis Carroll, Alice in Wonderland</p>
+    </div>
+
+    <div class="spine">
+      <div class="beat">
+        <div class="yr">2024</div>
+        <div class="rail"><span class="dot"></span></div>
+        <div class="body">
+          <div class="n">BEAT 01</div>
+          <h3>The Skeptic</h3>
+          <p>Free tier, masked prompts, and the conviction that a paid subscription wasn't worth it.</p>
+        </div>
+      </div>
+      <div class="beat">
+        <div class="yr">2024</div>
+        <div class="rail"><span class="dot"></span></div>
+        <div class="body">
+          <div class="n">BEAT 02</div>
+          <h3>Your own backyard never lies</h3>
+          <p>No client authorization, so personal projects became the testing ground. Unit tests first — surprising execution, questionable quality.</p>
+        </div>
+      </div>
+      <div class="beat">
+        <div class="yr">2025</div>
+        <div class="rail"><span class="dot"></span></div>
+        <div class="body">
+          <div class="n">BEAT 03</div>
+          <h3>The terminal command I didn't type</h3>
+          <p>A full API refactor, dozens of files touched, consistent patterns — and an agent running terminal commands you used to do with ↑ + Enter.</p>
+        </div>
+      </div>
+      <div class="beat">
+        <div class="yr">2025</div>
+        <div class="rail"><span class="dot"></span></div>
+        <div class="body">
+          <div class="n">BEAT 04</div>
+          <h3>You were already doing it</h3>
+          <p>Few-shot, delimiters, meta-prompting — techniques used by intuition, without knowing their names. Understanding the map changes how you move.</p>
+        </div>
+      </div>
+      <div class="beat now">
+        <div class="yr">2026</div>
+        <div class="rail"><span class="dot"></span></div>
+        <div class="body">
+          <div class="n">BEAT 05</div>
+          <h3>From user to orchestrator</h3>
+          <p>MCPs, indexing, context windows, agent comparison. The goal was never to know every tool — just to master the ones that fit your workflow.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- 04 · SECTION DIVIDER · Two Sides                             -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <section class="s-section" data-screen-label="06 Section · Two Sides" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text">
+    <div class="chrome">
+      <div class="lockup">
+        <svg viewBox="0 0 58 66" width="32" height="36" fill="currentColor"><path d="M 23.324 36.513 L 22.221 37.342 L 1.151 40.835 L 0 41.7 L 0.339 42.567 L 18.358 46.1 L 18.363 46.098 L 19.16 48.134 L 13.027 65.259 L 13.547 66 L 14.764 65.259 L 34.678 29.487 L 35.779 28.658 L 56.851 25.165 L 58 24.3 L 57.661 23.436 L 39.642 19.9 L 39.64 19.902 L 38.84 17.866 L 44.975 0.741 L 44.453 0 L 43.236 0.741 L 23.324 36.513 Z"></path></svg>
+        <span class="wm">SoftServe</span>
+      </div>
+      <div class="meta"><span>06</span></div>
+    </div>
+
+    <div class="rule-top"></div>
+    <div class="big-num">2</div>
+
+    <div class="body">
+      <div class="label">— Course 02</div>
+      <h2 style="font-family: Replica">Two Sides<br/>of the Same Coin</h2>
+      <p class="desc">A <em>Ferrari</em> and a <em>Jeep</em>: both are incredible machines, both get you where you need to go &mdash; but you drive them on completely different terrain.</p>
+    </div>
+
+    <div class="rule-bot"></div>
+
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- 05 · Two Sides — split blue/orange                           -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <section class="s-two" data-screen-label="07 Two Sides Compared" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="6">
+    <div class="chrome">
+      <div class="lockup">
+        <svg viewBox="0 0 58 66" width="32" height="36" fill="currentColor"><path d="M 23.324 36.513 L 22.221 37.342 L 1.151 40.835 L 0 41.7 L 0.339 42.567 L 18.358 46.1 L 18.363 46.098 L 19.16 48.134 L 13.027 65.259 L 13.547 66 L 14.764 65.259 L 34.678 29.487 L 35.779 28.658 L 56.851 25.165 L 58 24.3 L 57.661 23.436 L 39.642 19.9 L 39.64 19.902 L 38.84 17.866 L 44.975 0.741 L 44.453 0 L 43.236 0.741 L 23.324 36.513 Z"></path></svg>
+        <span class="wm">SoftServe</span>
+      </div>
+      <div class="meta"><span>Going Dutch Code</span><span class="sep">/</span><span>07</span></div>
+    </div>
+
+    <div class="head">
+      <div class="eyebrow">CURSOR · CLAUDE CODE</div>
+      <h2>Each tool wins on its own terrain. Pick the one the work asks for.</h2>
+    </div>
+
+    <div class="split">
+      <div class="col blue">
+        <h3 class="name">Cursor</h3>
+        <div class="stance">CONTROL SIDE · IDE-FIRST</div>
+        <ul>
+          <li>
+            <span class="k">01</span>
+            <span class="v"><b>Indexing &amp; Docs</b>The database that reads your whole repo. Doesn't guess where a function lives — it knows.</span>
+          </li>
+          <li>
+            <span class="k">02</span>
+            <span class="v"><b>Rules</b>Your style guide as code: “no classes, only functions.” No more garbage output.</span>
+          </li>
+          <li>
+            <span class="k">03</span>
+            <span class="v"><b>Skills</b>Repeatable workflows that load on demand. Your agent knows what to do without re-explaining.</span>
+          </li>
+          <li>
+            <span class="k">04</span>
+            <span class="v"><b>Subagents</b>Tiny clones handling subtasks while you hold the big picture.</span>
+          </li>
+          <li>
+            <span class="k">05</span>
+            <span class="v"><b>Credit Meter</b>Live usage indicator so the tab doesn't surprise you mid-session.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col orange">
+        <h3 class="name">Claude Code</h3>
+        <div class="stance">AUTONOMY SIDE · AGENT-FIRST</div>
+        <ul>
+          <li>
+            <span class="k">01</span>
+            <span class="v"><b>CLAUDE.MD</b>The contract. Long-term memory and rules of the game. When lost, it comes back here.</span>
+          </li>
+          <li>
+            <span class="k">02</span>
+            <span class="v"><b>Memory</b>Learns from your corrections across sessions. No manual updates needed.</span>
+          </li>
+          <li>
+            <span class="k">03</span>
+            <span class="v"><b>Skills</b>Actual tools. Runs tests, greps the file system, and corrects itself.</span>
+          </li>
+          <li>
+            <span class="k">04</span>
+            <span class="v"><b>Agents</b>Spawn specialized agents per subtask. Each can carry its own memory.</span>
+          </li>
+          <li>
+            <span class="k">05</span>
+            <span class="v"><b>Context / Cost</b>Tells you what the token tab looks like before your manager does.</span>
+          </li>
+        </ul>
+      </div>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- 06 · SECTION DIVIDER · Token Tab                             -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <section class="s-section" data-screen-label="08 Section · Token Tab" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text">
+    <div class="chrome">
+      <div class="lockup">
+        <svg viewBox="0 0 58 66" width="32" height="36" fill="currentColor"><path d="M 23.324 36.513 L 22.221 37.342 L 1.151 40.835 L 0 41.7 L 0.339 42.567 L 18.358 46.1 L 18.363 46.098 L 19.16 48.134 L 13.027 65.259 L 13.547 66 L 14.764 65.259 L 34.678 29.487 L 35.779 28.658 L 56.851 25.165 L 58 24.3 L 57.661 23.436 L 39.642 19.9 L 39.64 19.902 L 38.84 17.866 L 44.975 0.741 L 44.453 0 L 43.236 0.741 L 23.324 36.513 Z"></path></svg>
+        <span class="wm">SoftServe</span>
+      </div>
+      <div class="meta"><span>08</span></div>
+    </div>
+
+    <div class="rule-top"></div>
+    <div class="big-num">3</div>
+
+    <div class="body">
+      <div class="label">— Course 03</div>
+      <h2>The Token Tab</h2>
+      <p class="desc">Every prompt is an order. Every response is a charge. Here’s how to <em>read the receipt</em> before it gets out of hand.</p>
+    </div>
+
+    <div class="rule-bot"></div>
+
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- 07 · Token Tab — content                                     -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <section class="s-token" data-screen-label="09 Token Tab" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="8">
+    <div class="chrome">
+      <div class="lockup">
+        <svg viewBox="0 0 58 66" width="32" height="36" fill="currentColor"><path d="M 23.324 36.513 L 22.221 37.342 L 1.151 40.835 L 0 41.7 L 0.339 42.567 L 18.358 46.1 L 18.363 46.098 L 19.16 48.134 L 13.027 65.259 L 13.547 66 L 14.764 65.259 L 34.678 29.487 L 35.779 28.658 L 56.851 25.165 L 58 24.3 L 57.661 23.436 L 39.642 19.9 L 39.64 19.902 L 38.84 17.866 L 44.975 0.741 L 44.453 0 L 43.236 0.741 L 23.324 36.513 Z"></path></svg>
+        <span class="wm">SoftServe</span>
+      </div>
+      <div class="meta"><span>Going Dutch Code</span><span class="sep">/</span><span>09</span></div>
+    </div>
+
+    <div class="top">
+      <div class="eyebrow">WHERE MOST DEVS BLOW IT</div>
+      <h2>Every bad prompt shows up on the <em>bill.</em></h2>
+      <p class="lede">If the agent is going in circles, the problem wasn't well defined — and that's on us. Each "let me try again…" ticks the tab up.</p>
+    </div>
+
+    <aside class="receipt" aria-label="Token tab receipt">
+      <div class="r-head">
+        <div class="title">TOKEN TAB</div>
+        <div class="ticket">TICKET #4487 · WED 03:42</div>
+      </div>
+
+      <div class="lines">
+        <div class="ln good"><span class="lbl">Clear <span class="mono">CLAUDE.md</span> context</span><span class="amt">−1,280 t</span></div>
+        <div class="ln good"><span class="lbl">Well-scoped <span class="mono">.cursorrules</span></span><span class="amt">− 840 t</span></div>
+        <div class="ln"><span class="lbl">First attempt · feature build</span><span class="amt">3,200 t</span></div>
+        <div class="ln bad"><span class="lbl">Retry · wrong function signature</span><span class="amt">+1,900 t</span></div>
+        <div class="ln bad"><span class="lbl">Retry · missed project convention</span><span class="amt">+2,400 t</span></div>
+        <div class="ln bad"><span class="lbl">Loop · fixing its own fix</span><span class="amt">+4,100 t</span></div>
+      </div>
+
+      <div class="double-rule"></div>
+      <div class="double-rule"></div>
+
+      <div class="total">
+        <div class="t-lbl">SURPRISE TAB</div>
+        <div class="t-amt">$12.40</div>
+      </div>
+      <div class="footnote">For one feature that should have cost $2.80. <br> Tip: write the brief you wish you'd received.</div>
+    </aside>
+
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- 07b · The Rules                                              -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <section class="s-rules" data-screen-label="10 The Rules" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="9">
+    <div class="chrome">
+      <div class="lockup">
+        <svg viewBox="0 0 58 66" width="32" height="36" fill="currentColor"><path d="M 23.324 36.513 L 22.221 37.342 L 1.151 40.835 L 0 41.7 L 0.339 42.567 L 18.358 46.1 L 18.363 46.098 L 19.16 48.134 L 13.027 65.259 L 13.547 66 L 14.764 65.259 L 34.678 29.487 L 35.779 28.658 L 56.851 25.165 L 58 24.3 L 57.661 23.436 L 39.642 19.9 L 39.64 19.902 L 38.84 17.866 L 44.975 0.741 L 44.453 0 L 43.236 0.741 L 23.324 36.513 Z"></path></svg>
+        <span class="wm">SoftServe</span>
+      </div>
+      <div class="meta"><span>Going Dutch Code</span><span class="sep">/</span><span>10</span></div>
+    </div>
+
+    <div class="top">
+      <div class="eyebrow">— HOW TO KEEP THE TAB DOWN</div>
+      <h2>Four rules that keep the <em>token tab</em> honest.</h2>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="num">— RULE 01</div>
+        <h3>Be specific</h3>
+        <p>Write your prompt like you'd brief a new teammate. <br><em>A vague instruction is where the loop begins.</em></p>
+      </div>
+      <div class="card">
+        <div class="num">— RULE 02</div>
+        <h3>Check the tab often</h3>
+        <p>Glance at usage the way you'd glance at a dinner bill. <br><em>Seeing the cost keeps you honest.</em></p>
+      </div>
+      <div class="card">
+        <div class="num">— RULE 03</div>
+        <h3>Fewer tokens = better understanding</h3>
+        <p>A short, clean run means the agent got it right. <br><em>Long runs are a warning sign, not a win.</em></p>
+      </div>
+      <div class="card">
+        <div class="num">— RULE 04</div>
+        <h3>Quality beats guessing</h3>
+        <p>Ten minutes refining your prompt saves <em>thousands of tokens</em> chasing the wrong answer.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- 08 · SECTION DIVIDER · Demo                                  -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <section class="s-section" data-screen-label="11 Section · Demo" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text">
+    <div class="chrome">
+      <div class="lockup">
+        <svg viewBox="0 0 58 66" width="32" height="36" fill="currentColor"><path d="M 23.324 36.513 L 22.221 37.342 L 1.151 40.835 L 0 41.7 L 0.339 42.567 L 18.358 46.1 L 18.363 46.098 L 19.16 48.134 L 13.027 65.259 L 13.547 66 L 14.764 65.259 L 34.678 29.487 L 35.779 28.658 L 56.851 25.165 L 58 24.3 L 57.661 23.436 L 39.642 19.9 L 39.64 19.902 L 38.84 17.866 L 44.975 0.741 L 44.453 0 L 43.236 0.741 L 23.324 36.513 Z"></path></svg>
+        <span class="wm">SoftServe</span>
+      </div>
+      <div class="meta"><span>11</span></div>
+    </div>
+
+    <div class="rule-top"></div>
+    <div class="big-num">4</div>
+
+    <div class="body">
+      <div class="label">— Course 04</div>
+      <h2>Real-World Logic</h2>
+      <p class="desc">Cooked, not microwaved. A live walkthrough of where AI shaved <em>hours</em> &mdash; and where a human still had to <em>taste the broth</em>.</p>
+    </div>
+
+    <div class="rule-bot"></div>
+
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- 09 · Demo — checklist                                        -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <section class="s-demo" data-screen-label="12 Demo Checklist" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="10">
+    <div class="chrome">
+      <div class="lockup">
+        <svg viewBox="0 0 58 66" width="32" height="36" fill="currentColor"><path d="M 23.324 36.513 L 22.221 37.342 L 1.151 40.835 L 0 41.7 L 0.339 42.567 L 18.358 46.1 L 18.363 46.098 L 19.16 48.134 L 13.027 65.259 L 13.547 66 L 14.764 65.259 L 34.678 29.487 L 35.779 28.658 L 56.851 25.165 L 58 24.3 L 57.661 23.436 L 39.642 19.9 L 39.64 19.902 L 38.84 17.866 L 44.975 0.741 L 44.453 0 L 43.236 0.741 L 23.324 36.513 Z"></path></svg>
+        <span class="wm">SoftServe</span>
+      </div>
+      <div class="meta"><span>Going Dutch Code</span><span class="sep">/</span><span>12</span></div>
+    </div>
+
+    <div class="top">
+      <div class="eyebrow" style="margin-bottom: 28px;">DEMO BRIEF · WHAT TO WATCH FOR</div>
+      <h2>Before we open the IDE —<br>here's the <em>game plan.</em></h2>
+      <div class="lede">— THE INTERESTING MOMENT IS WHEN THE DEV STEPS IN AND EXPLAINS WHY.</div>
+    </div>
+
+    <div class="checks">
+      <div class="check">
+        <div class="step"><span>—</span>STEP 01</div>
+        <h3>The preset</h3>
+        <ul>
+          <li>What's in CLAUDE.MD</li>
+          <li>Cursor rules in place</li>
+          <li>MCPs &amp; skills active</li>
+          <li>Repo already indexed</li>
+        </ul>
+      </div>
+      <div class="check">
+        <div class="step"><span>—</span>STEP 02</div>
+        <h3>The new (meme) feature</h3>
+        <ul>
+          <li>Not a hello-world</li>
+          <li>The slides will be slightly different</li>
+          <li>The flow you used to do alone</li>
+          <li>Prepared in advance</li>
+        </ul>
+      </div>
+      <div class="check">
+        <div class="step"><span>—</span>STEP 03</div>
+        <h3>The decisions</h3>
+        <ul>
+          <li>Where the dev still leads</li>
+          <li>Where the agent takes over</li>
+          <li>Where they split the work</li>
+          <li>Who's paying which token</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- 10 · SECTION DIVIDER · The Payoff                            -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <section class="s-section" data-screen-label="13 Section · Payoff" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text">
+    <div class="chrome">
+      <div class="lockup">
+        <svg viewBox="0 0 58 66" width="32" height="36" fill="currentColor"><path d="M 23.324 36.513 L 22.221 37.342 L 1.151 40.835 L 0 41.7 L 0.339 42.567 L 18.358 46.1 L 18.363 46.098 L 19.16 48.134 L 13.027 65.259 L 13.547 66 L 14.764 65.259 L 34.678 29.487 L 35.779 28.658 L 56.851 25.165 L 58 24.3 L 57.661 23.436 L 39.642 19.9 L 39.64 19.902 L 38.84 17.866 L 44.975 0.741 L 44.453 0 L 43.236 0.741 L 23.324 36.513 Z"></path></svg>
+        <span class="wm">SoftServe</span>
+      </div>
+      <div class="meta"><span>13</span></div>
+    </div>
+
+    <div class="rule-top"></div>
+    <div class="big-num">5</div>
+
+    <div class="body">
+      <div class="label">— Course 05</div>
+      <h2>The Payoff</h2>
+      <p class="desc">What you take home from the table: <br>You brought the <em>strategy</em>. AI picked up the <em>grunt work</em>.</p>
+    </div>
+
+    <div class="rule-bot"></div>
+
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- 11 · The Payoff — content                                    -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <section class="s-payoff" data-screen-label="14 Payoff" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="12">
+    <div class="chrome">
+      <div class="lockup">
+        <svg viewBox="0 0 58 66" width="32" height="36" fill="currentColor"><path d="M 23.324 36.513 L 22.221 37.342 L 1.151 40.835 L 0 41.7 L 0.339 42.567 L 18.358 46.1 L 18.363 46.098 L 19.16 48.134 L 13.027 65.259 L 13.547 66 L 14.764 65.259 L 34.678 29.487 L 35.779 28.658 L 56.851 25.165 L 58 24.3 L 57.661 23.436 L 39.642 19.9 L 39.64 19.902 L 38.84 17.866 L 44.975 0.741 L 44.453 0 L 43.236 0.741 L 23.324 36.513 Z"></path></svg>
+        <span class="wm">SoftServe</span>
+      </div>
+      <div class="meta"><span>Going Dutch Code</span><span class="sep">/</span><span>14</span></div>
+    </div>
+
+    <div class="top">
+      <div class="eyebrow">THE DEAL · WHO PAYS WHAT</div>
+      <br>
+      <h2>Where to put your <em>attention</em>.</h2>
+    </div>
+
+    <div class="deal">
+      <div class="side them">
+        <div class="tag">— PAID BY THE AGENTS</div>
+        <h3>The grunt work</h3>
+        <ul>
+          <li>Unit tests &amp; boilerplate</li>
+          <li>Repetitive refactors and tasks</li>
+          <li>1000-line files no one wants to touch</li>
+          <li>Mechanical, predictable changes</li>
+        </ul>
+      </div>
+      <div class="side us">
+        <div class="tag">— PAID BY YOU</div>
+        <h3>The strategy</h3>
+        <ul>
+          <li>Deciding what to build — and what to kill</li>
+          <li>Catching what the agent missed — and knowing why it missed it</li>
+          <li>Knowing when the output is good enough to ship</li>
+          <li>Turning business problems into engineering decisions</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- 12 · Recap                                                   -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <section class="s-recap" data-screen-label="15 Recap" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="13">
+    <div class="chrome">
+      <div class="lockup">
+        <svg viewBox="0 0 58 66" width="32" height="36" fill="currentColor"><path d="M 23.324 36.513 L 22.221 37.342 L 1.151 40.835 L 0 41.7 L 0.339 42.567 L 18.358 46.1 L 18.363 46.098 L 19.16 48.134 L 13.027 65.259 L 13.547 66 L 14.764 65.259 L 34.678 29.487 L 35.779 28.658 L 56.851 25.165 L 58 24.3 L 57.661 23.436 L 39.642 19.9 L 39.64 19.902 L 38.84 17.866 L 44.975 0.741 L 44.453 0 L 43.236 0.741 L 23.324 36.513 Z"></path></svg>
+        <span class="wm">SoftServe</span>
+      </div>
+      <div class="meta"><span>Going Dutch Code</span><span class="sep">/</span><span>15</span></div>
+    </div>
+
+    <div class="top">
+      <div class="eyebrow" style="margin-bottom: 28px;">WHAT TO TAKE TO YOUR NEXT SPRINT</div>
+      <h2>Four things to<br>remember <em>tomorrow.</em></h2>
+    </div>
+
+    <div class="takeaways">
+      <div class="ta">
+        <div class="num">— 01</div>
+        <h3>The role changed</h3>
+        <p>Not less important — more strategic. Agentic Software Engineer is a way of working, not a title.</p>
+      </div>
+      <div class="ta">
+        <div class="num">— 02</div>
+        <h3>Use both tools</h3>
+        <p>Cursor for control and IDE context. Claude Code for autonomy and long-horizon tasks. Same DNA.</p>
+      </div>
+      <div class="ta">
+        <div class="num">— 03</div>
+        <h3>The tab is a signal</h3>
+        <p>The Token Tab isn't only money. It's a clarity meter. Loops mean the problem wasn't well defined.</p>
+      </div>
+      <div class="ta">
+        <div class="num">— 04</div>
+        <h3>Start with one thing</h3>
+        <p>Don't rewrite your workflow overnight. Pick the task that drains you most this week — and delegate it.</p>
+      </div>
+    </div>
+  </section>
+
+</deck-stage>
+
+<div id="tweaks-root"><style>
+      .s-section { background: linear-gradient(180deg, #FFFFFF 0%, #E6F1F9 30%, #C1DFF4 70%, #459FDD 100%) !important; }
+      .s-section .rule-top, .s-section .rule-bot { background: #0A0B0C !important; }
+      .s-section h2 {
+        font-size: 144px !important;
+        text-transform: uppercase !important;
+        color: #0A0B0C !important;
+      }
+      .s-section .label { color: #0A0B0C !important; }
+      .s-section .desc { color: #0A0B0C !important;  }
+      .s-section .desc em { color: #FF5C20 !important; }
+      .s-section .big-num {
+        font-size: 520px !important;
+        color: #0A0B0C !important;
+
+        left: auto !important; right: 96px !important;
+      }
+      .s-section .chrome .lockup .wm,
+      .s-section .chrome .meta { color: #0A0B0C !important; }
+      .s-section .chrome .meta .sep { color: #0A0B0C !important; opacity: 0.5; }
+      .s-section .chrome svg path { fill: #0A0B0C !important; stroke: #0A0B0C !important; }
+      .s-section .footer .lhs, .s-section .footer .rhs { color: #0A0B0C !important; }
+    </style></div>
+
+<script type="text/babel" data-presets="react" data-plugins="transform-react-jsx-source,om-src-id" data-filename="inline-1">
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "sectionGradient": "blue",
+  "numeralSize": 520,
+  "numeralAlign": "right",
+  "titleSize": 144,
+  "showDescription": true,
+  "showNumeral": true,
+  "uppercaseTitle": true,
+  "accent": "#000000"
+}/*EDITMODE-END*/;
+
+const GRADIENTS = {
+  white:   "#FFFFFF",
+  blue:    "linear-gradient(180deg, #FFFFFF 0%, #E6F1F9 30%, #C1DFF4 70%, #459FDD 100%)",
+  orange:  "linear-gradient(180deg, #FFFFFF 0%, #FFE9DC 35%, #FFCBA8 75%, #FF5C20 100%)",
+  neutral: "linear-gradient(180deg, #FFFFFF 0%, #F4F2EE 50%, #D9D5CB 100%)",
+  inverted:"linear-gradient(180deg, #459FDD 0%, #C1DFF4 30%, #E6F1F9 70%, #FFFFFF 100%)",
+  black:   "linear-gradient(180deg, #0A0B0C 0%, #1A1A1A 60%, #2C2C2C 100%)"
+};
+
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+  // Apply tweaks via inline <style> injection so we don't have to walk the DOM
+  const css = React.useMemo(() => {
+    const dark = t.sectionGradient === "black";
+    const fg = dark ? "#FAF9F7" : "#0A0B0C";
+    return `
+      .s-section { background: ${GRADIENTS[t.sectionGradient] || GRADIENTS.blue} !important; }
+      .s-section .rule-top, .s-section .rule-bot { background: ${fg} !important; }
+      .s-section h2 {
+        font-size: ${t.titleSize}px !important;
+        text-transform: ${t.uppercaseTitle ? "uppercase" : "none"} !important;
+        color: ${fg} !important;
+      }
+      .s-section .label { color: ${fg} !important; }
+      .s-section .desc { color: ${fg} !important; ${t.showDescription ? "" : "display:none !important;"} }
+      .s-section .desc em { color: ${t.accent} !important; }
+      .s-section .big-num {
+        font-size: ${t.numeralSize}px !important;
+        color: ${fg} !important;
+        ${t.showNumeral ? "" : "display:none !important;"}
+        font-family: 'Replica', var(--font-sans) !important;
+        ${t.numeralAlign === "left"
+          ? "right: auto !important; left: 200px !important;"
+          : "left: auto !important; right: 200px !important;"}
+      }
+      .s-section .chrome .lockup .wm,
+      .s-section .chrome .meta { color: ${fg} !important; }
+      .s-section .chrome .meta .sep { color: ${fg} !important; opacity: 0.5; }
+      .s-section .chrome svg path { fill: ${fg} !important; stroke: ${fg} !important; }
+      .s-section .footer .lhs, .s-section .footer .rhs { color: ${fg} !important; }
+    `;
+  }, [t]);
+
+  return (
+    <React.Fragment>
+      <style dangerouslySetInnerHTML={{__html: css}} />
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Section dividers" />
+        <TweakSelect
+          label="Background"
+          value={t.sectionGradient}
+          options={[
+            {value:"white", label:"White"},
+            {value:"blue", label:"Sky → blue"},
+            {value:"orange", label:"Cream → orange"},
+            {value:"neutral", label:"Neutral fade"},
+            {value:"inverted", label:"Blue → sky (flip)"},
+            {value:"black", label:"Midnight"}
+          ]}
+          onChange={(v) => setTweak("sectionGradient", v)}
+        />
+        <TweakSlider
+          label="Title size"
+          value={t.titleSize}
+          min={72} max={180} step={2} unit="px"
+          onChange={(v) => setTweak("titleSize", v)}
+        />
+        <TweakToggle
+          label="Uppercase title"
+          value={t.uppercaseTitle}
+          onChange={(v) => setTweak("uppercaseTitle", v)}
+        />
+        <TweakToggle
+          label="Show description"
+          value={t.showDescription}
+          onChange={(v) => setTweak("showDescription", v)}
+        />
+        <TweakColor
+          label="Accent (in description)"
+          value={t.accent}
+          onChange={(v) => setTweak("accent", v)}
+        />
+
+        <TweakSection label="Course numeral" />
+        <TweakToggle
+          label="Show numeral"
+          value={t.showNumeral}
+          onChange={(v) => setTweak("showNumeral", v)}
+        />
+        <TweakSlider
+          label="Numeral size"
+          value={t.numeralSize}
+          min={120} max={720} step={10} unit="px"
+          onChange={(v) => setTweak("numeralSize", v)}
+        />
+        <TweakRadio
+          label="Numeral position"
+          value={t.numeralAlign}
+          options={["left","right"]}
+          onChange={(v) => setTweak("numeralAlign", v)}
+        />
+
+        <TweakSection label="Jump to a course" />
+        <div style={{display:"grid", gridTemplateColumns:"repeat(5, 1fr)", gap:6}}>
+          {[2,3,5,7,9].map((idx, i) => (
+            <button
+              key={idx}
+              onClick={() => { document.querySelector("deck-stage").currentIndex = idx; }}
+              style={{
+                appearance:"none", border:"1px solid rgba(0,0,0,.12)",
+                background:"rgba(255,255,255,.7)", color:"#29261b",
+                padding:"8px 0", borderRadius:8, fontFamily:"inherit",
+                fontSize:12, fontWeight:600, cursor:"default"
+              }}
+            >{i+1}</button>
+          ))}
+        </div>
+      </TweaksPanel>
+    </React.Fragment>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("tweaks-root")).render(<App />);
+</script>
+
+
+
+</body></html>

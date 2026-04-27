@@ -1,0 +1,356 @@
+/* ───────────────────────────────────────────────────────────
+ * ASCEND OS — Color & Type tokens
+ * SoftServe's Ascend Brand Operating System
+ * ───────────────────────────────────────────────────────── */
+
+/* Font loading:
+ *   Azurio       → real brand font (fonts/Azurio-*.otf)        ← active
+ *   Replica LL   → real brand font (fonts/ReplicaLLTT-*.ttf)   ← active
+ *   Roboto Mono  → real brand font (fonts/RobotoMono-*.ttf)    ← active
+ *   Roboto       → Roboto          (Google Fonts — exact)
+ */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+@font-face {
+  font-family: 'Roboto Mono';
+  src: url('fonts/RobotoMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Roboto Mono';
+  src: url('fonts/RobotoMono-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Roboto Mono';
+  src: url('fonts/RobotoMono-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Replica';
+  src: url('fonts/ReplicaLLTT-Regular_3955995154.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Replica';
+  src: url('fonts/ReplicaLLTT-Bold_2525542334.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Azurio';
+  src: url('fonts/Azurio-Regular_3351021191.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Azurio';
+  src: url('fonts/Azurio-Semibold_3258304997.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* ── PRIMARY BRAND ────────────────────────────────────── */
+  --aos-lviv-blue-100: #1485C4;   /* Lviv Blue 100 — Pantone 2173 C */
+  --aos-lviv-blue-75:  #459FDD;   /* Lviv Blue 75  — Pantone 2190 C */
+  --aos-lviv-blue-50:  #C1DFF4;
+  --aos-lviv-blue-tint: #F4F9FD;
+
+  --aos-austin-orange-100: #F46A4A;  /* Austin Orange 100 — Pantone 2026 C */
+  --aos-austin-orange-75:  #FE8D6B;  /* Austin Orange 75  — Pantone 2023 C */
+  --aos-austin-orange-50:  #FFCEC0;
+  --aos-austin-orange-tint: #FFF7F5;
+
+  /* ── NEUTRALS ─────────────────────────────────────────── */
+  --aos-black:       #000000;
+  --aos-white:       #FFFFFF;
+  --aos-neutral-600: #26292B;   /* Ink — primary text on white */
+  --aos-neutral-500: #4C5156;
+  --aos-neutral-400: #717A81;
+  --aos-neutral-300: #97A2AC;
+  --aos-neutral-200: #BDCBD7;
+  --aos-neutral-100: #D1DAE2;
+  --aos-neutral-50:  #E1E7EB;
+  --aos-neutral-25:  #EDF0F2;
+  --aos-neutral-10:  #F7F9FA;
+
+  /* ── SEMANTIC ─────────────────────────────────────────── */
+  --aos-error-1:   #F95050;
+  --aos-error-2:   #FCA8A8;
+  --aos-success-1: #20E077;
+  --aos-success-2: #90F0BB;
+
+  /* ── GRADIENTS (Fade to White & Soft Tint) ────────────── */
+  --aos-grad-blue-white:    linear-gradient(90deg, #459FDD 0%, #C1DFF4 51%, #FFFFFF 100%);
+  --aos-grad-blue-tint:     linear-gradient(90deg, #459FDD 0%, #C1DFF4 50%, #F4F9FD 100%);
+  --aos-grad-orange-white:  linear-gradient(90deg, #FE8D6B 0%, #FFCEC0 51%, #FFFFFF 100%);
+  --aos-grad-orange-tint:   linear-gradient(90deg, #FE8D6B 0%, #FFCEC0 50%, #FFF7F5 100%);
+  --aos-grad-chamfer-blue:  linear-gradient(180deg, #FFFFFF 0%, #F0F7FC 5%, #D6EAF7 14%, #C6E1F4 23%, #C1DFF4 30%, #459FDD 100%);
+
+  /* ── SEMANTIC SURFACES / TEXT ─────────────────────────── */
+  --fg:          #26292B;
+  --fg-muted:    #4C5156;
+  --fg-subtle:   #717A81;
+  --fg-inverse:  #FFFFFF;
+
+  --bg:          #FFFFFF;
+  --bg-soft:     #F7F9FA;
+  --bg-muted:    #EDF0F2;
+  --bg-panel:    #BDCBD7;         /* the signature cool-grey panel */
+  --bg-ink:      #26292B;         /* dark headers */
+  --bg-black:    #000000;
+
+  --border:      #D1DAE2;
+  --border-soft: #E1E7EB;
+  --divider:     #E1E1E1;
+
+  --accent:      #F46A4A;
+  --accent-soft: #FE8D6B;
+  --info:        #1485C4;
+  --info-soft:   #459FDD;
+
+  /* ── TYPOGRAPHY FAMILIES ──────────────────────────────── */
+  --font-display: 'Azurio', 'Space Grotesk', ui-sans-serif, system-ui, sans-serif; /* Azurio */
+  --font-sans:    'Replica', 'Inter Tight', ui-sans-serif, system-ui, sans-serif;   /* Replica */
+  --font-mono:    'Roboto Mono', 'JetBrains Mono', ui-monospace, monospace;         /* Roboto Mono */
+  --font-system:  'Roboto', system-ui, sans-serif;
+
+  /* ── TYPE SCALE (per Ascend OS hierarchy) ─────────────── */
+  /* display (Azurio) */
+  --t-display-xl:  clamp(56px, 7vw, 120px);   /* Azurio hero */
+  --t-display-l:   clamp(48px, 5vw, 80px);    /* Headline */
+  --t-display-m:   clamp(36px, 4vw, 64px);
+  --t-display-s:   32px;
+
+  /* headline (Replica) */
+  --t-title-xl:    71px;
+  --t-title-l:     48px;   /* Supporting Title */
+  --t-title-m:     32px;   /* Sub Header — UPPERCASE + bold */
+  --t-title-s:     24px;
+  --t-title-xs:    18px;
+
+  /* body (Replica) */
+  --t-body-l:      20px;
+  --t-body-m:      16px;   /* default */
+  --t-body-s:      14px;
+  --t-body-xs:     12px;
+
+  /* mono (Roboto Mono) */
+  --t-mono-l:      18px;
+  --t-mono-m:      16px;
+  --t-mono-s:      14px;
+  --t-mono-xs:     12px;   /* small caption + data header */
+  --t-mono-xxs:    10px;
+
+  /* ── LINE-HEIGHT, TRACKING ────────────────────────────── */
+  --lh-tight:   1.0;   /* display */
+  --lh-snug:    1.1;
+  --lh-normal:  1.3;
+  --lh-body:    1.5;
+  --lh-loose:   1.6;
+
+  --track-tight:  -0.015em;
+  --track-normal: 0;
+  --track-loose:   0.010em;
+
+  /* ── SPACING (8px base) ──────────────────────────────── */
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  24px;
+  --s-6:  32px;
+  --s-7:  48px;
+  --s-8:  64px;
+  --s-9:  96px;
+  --s-10: 128px;
+
+  /* ── CHAMFER (the core geometric motif) ──────────────── */
+  /* Ascend OS uses 45° chamfered cuts instead of rounded corners.
+   * The chamfer depth scales with the element. These are the three
+   * canonical depths. Use via clip-path: var(--chamfer-all-12) etc. */
+  --chamfer-6:  6px;
+  --chamfer-12: 12px;
+  --chamfer-24: 24px;
+  --chamfer-48: 48px;
+
+  /* top-right + bottom-left diagonal (most common on cards) */
+  --chamfer-diagonal-12: polygon(
+    0 0, calc(100% - 12px) 0, 100% 12px,
+    100% 100%, 12px 100%, 0 calc(100% - 12px)
+  );
+  --chamfer-diagonal-24: polygon(
+    0 0, calc(100% - 24px) 0, 100% 24px,
+    100% 100%, 24px 100%, 0 calc(100% - 24px)
+  );
+  /* all four corners */
+  --chamfer-all-12: polygon(
+    12px 0, calc(100% - 12px) 0, 100% 12px,
+    100% calc(100% - 12px), calc(100% - 12px) 100%,
+    12px 100%, 0 calc(100% - 12px), 0 12px
+  );
+  --chamfer-all-24: polygon(
+    24px 0, calc(100% - 24px) 0, 100% 24px,
+    100% calc(100% - 24px), calc(100% - 24px) 100%,
+    24px 100%, 0 calc(100% - 24px), 0 24px
+  );
+
+  /* Ascend OS does NOT use rounded corners in product layouts.
+   * border-radius is kept for tiny data chips / toggles only. */
+  --radius-chip: 2px;
+  --radius-pill: 9999px;
+
+  /* ── BORDERS / STROKES ───────────────────────────────── */
+  --stroke-hair: 0.5px solid var(--border-soft);
+  --stroke-1:    1px solid var(--border);
+  --stroke-2:    2px solid var(--fg);         /* trajectory line */
+  --stroke-3:    3px solid var(--fg);         /* icon stroke */
+
+  /* ── SHADOWS ──────────────────────────────────────────
+   * Ascend OS is flat and engineered. Shadows are rarely used.
+   * When needed, prefer a subtle single-layer shadow. */
+  --shadow-sm: 0 1px 2px rgba(38,41,43,0.06);
+  --shadow-md: 0 4px 12px rgba(38,41,43,0.08);
+  --shadow-lg: 0 12px 32px rgba(38,41,43,0.10);
+
+  /* ── MOTION ───────────────────────────────────────────
+   * Fast, precise easing — "engineered" not "bouncy". */
+  --ease-out:    cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast:    120ms;
+  --dur-med:     220ms;
+  --dur-slow:    420ms;
+}
+
+/* ── SEMANTIC ELEMENT ROLES ─────────────────────────────── */
+
+html, body {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: var(--lh-body);
+  color: var(--fg);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Display headlines — Azurio (Space Grotesk) */
+.aos-display, h1.aos-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--t-display-l);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--track-loose);
+  color: var(--fg);
+}
+
+/* Short punchy headline — Replica */
+.aos-headline, h1.aos-headline {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: var(--t-title-xl);
+  line-height: 64px;
+  letter-spacing: var(--track-loose);
+  text-transform: uppercase;
+}
+
+/* Supporting title */
+.aos-title, h2 {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: var(--t-title-l);
+  line-height: 1.05;
+  letter-spacing: var(--track-tight);
+  color: var(--fg);
+}
+
+/* Sub header — UPPERCASE + bold */
+.aos-sub, h3 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: var(--t-title-m);
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  color: var(--fg);
+}
+
+/* Body copy */
+p, .aos-body {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: var(--t-body-m);
+  line-height: var(--lh-body);
+  color: var(--fg-muted);
+}
+
+/* Lead body (larger) */
+.aos-lead {
+  font-size: var(--t-body-l);
+  line-height: 1.4;
+  color: var(--fg);
+}
+
+/* Small caption / data header — Roboto Mono, UPPERCASE, bold */
+.aos-caption, small {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--t-mono-xs);
+  line-height: 1.0;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--fg-subtle);
+}
+
+/* Data header — same as caption but uncolored */
+.aos-data {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: var(--t-mono-s);
+  color: var(--fg);
+  letter-spacing: 0.01em;
+}
+
+/* Numerical / KPI display */
+.aos-kpi {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: clamp(48px, 6vw, 96px);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+
+code, .aos-code {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--fg);
+  background: var(--bg-muted);
+  padding: 2px 6px;
+}
+
+a {
+  color: inherit;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+a:hover { opacity: 0.7; }
+
+hr { border: 0; border-top: 1px solid var(--divider); }
+
+::selection { background: var(--aos-austin-orange-75); color: var(--aos-white); }
