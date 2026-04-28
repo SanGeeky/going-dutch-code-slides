@@ -115,7 +115,7 @@ Expects these font files in a `fonts/` subdirectory:
 ## Style Conventions
 
 - **Spacing units**: 96px page margins, 56px–80px section padding
-- **Typography scale**: 
+- **Typography scale**:
   - Display: 96–200px (Replica or Azurio)
   - Body: 16–22px (Replica)
   - Mono: 11–16px (Roboto Mono)
@@ -168,3 +168,16 @@ Expects these font files in a `fonts/` subdirectory:
 - **Speaker notes**: Can be embedded as `<script type="application/json" id="speaker-notes">` (deck-stage posts `{slideIndexChanged: N}` to parent window)
 - **Accessibility**: Slides use semantic HTML but no explicit ARIA navigation (room for improvement)
 - **Performance**: Slides stay mounted (hidden) rather than unmounting, preserving state but keeping all DOM nodes in memory
+
+
+# Communication
+- Be direct and concise. No verbosity or over-explanation.
+- Avoid ambiguity — ask for clarification when instructions are unclear.
+
+# Code Style
+- Write clean, self-describing code. Avoid comments that overexplain.
+
+# Git
+- NEVER run `git rebase --continue`. This is the user's responsibility.
+- NEVER commit changes by your own.
+- SUGGEST commit messages for work-related commits.
