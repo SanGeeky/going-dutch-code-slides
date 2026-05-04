@@ -57,6 +57,47 @@
 
   const pad2 = (n) => String(n).padStart(2, '0');
 
+  // Meme configuration: maps slide indices to image configs
+  const MEME_CONFIG = {
+    4: {  // Slide 05 - My Journey
+      image: 'img/wolf-meme.gif',
+      selector: '.s-journey .anchor h2',
+      position: 'after',
+      width: '400px',
+      marginTop: '32px'
+    },
+    5: {  // Slide 06 - Section Divider (Two Sides)
+      image: 'img/claude-meme.png',
+      selector: '.s-section .body .label',
+      position: 'after',
+      width: '500px',
+      marginTop: '24px',
+      marginBottom: '32px'
+    },
+    8: {  // Slide 09 - Token Tab
+      image: 'img/one-shot-meme.webp',
+      selector: '.s-token .top h2',
+      position: 'after',
+      width: '420px',
+      marginTop: '36px'
+    },
+    10: {  // Slide 11 - Section Divider (Demo)
+      image: 'img/production-meme.webp',
+      selector: '.s-section .body .label',
+      position: 'after',
+      width: '450px',
+      marginTop: '24px',
+      marginBottom: '32px'
+    },
+    14: {  // Slide 15 - Recap
+      image: 'img/context-meme.jpeg',
+      selector: '.s-recap .top h2',
+      position: 'after',
+      width: '480px',
+      marginTop: '36px'
+    }
+  };
+
   const stylesheet = `
     :host {
       position: fixed;
@@ -220,6 +261,15 @@
       margin: 0 2px;
     }
 
+    /* ── Meme toggle support ─────────────────────────────────────────────
+       Images injected programmatically, hidden by default. Toggle with M key. */
+    .deck-meme-img {
+      display: none;
+      max-width: 100%;
+      height: auto;
+      pointer-events: none;
+    }
+
     /* ── Print: one page per slide, no chrome ────────────────────────────
        The screen layout stacks every slide at inset:0 inside a scaled
        canvas; for print we want them in document flow at the authored
@@ -262,6 +312,9 @@
         page-break-after: auto;
       }
       .overlay, .tapzones { display: none !important; }
+      .deck-meme-img {
+        display: none !important;
+      }
     }
   `;
 
@@ -277,6 +330,9 @@
       this._hideTimer = null;
       this._mouseIdleTimer = null;
       this._storageKey = STORAGE_PREFIX + (location.pathname || '/');
+      this._memesVisible = false;
+      this._memesInjected = false;
+      this._memeStorageKey = STORAGE_PREFIX + 'memes:' + (location.pathname || '/');
 
       this._onKey = this._onKey.bind(this);
       this._onResize = this._onResize.bind(this);
@@ -297,6 +353,7 @@
       this._render();
       this._loadNotes();
       this._syncPrintPageRule();
+      this._syncMemeStyles();
       window.addEventListener('keydown', this._onKey);
       window.addEventListener('resize', this._onResize);
       window.addEventListener('mousemove', this._onMouseMove, { passive: true });
@@ -403,11 +460,67 @@
         '* { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }';
     }
 
+    _syncMemeStyles() {
+      const id = 'deck-stage-meme-styles';
+      let tag = document.getElementById(id);
+      if (!tag) {
+        tag = document.createElement('style');
+        tag.id = id;
+        document.head.appendChild(tag);
+      }
+      tag.textContent =
+        '.deck-meme-img { display: none; max-width: 100%; height: auto; pointer-events: none; } ' +
+        '[data-deck-memes-visible] .deck-meme-img { display: block; } ' +
+        '@media print { .deck-meme-img { display: none !important; } ' +
+        '[data-deck-memes-visible] .deck-meme-img { display: block !important; } }';
+    }
+
     _onSlotChange() {
       this._collectSlides();
       this._restoreIndex();
       this._applyIndex({ showOverlay: false, broadcast: true, reason: 'init' });
+      this._injectMemes();
       this._fit();
+    }
+
+    _injectMemes() {
+      if (this._memesInjected) return;
+
+      Object.entries(MEME_CONFIG).forEach(([slideIndex, config]) => {
+        try {
+          const slide = this._slides[parseInt(slideIndex, 10)];
+          if (!slide) {
+            console.warn(`[deck-stage:memes] Slide ${slideIndex} not found`);
+            return;
+          }
+
+          const anchor = slide.querySelector(config.selector);
+          if (!anchor) {
+            console.warn(`[deck-stage:memes] Anchor "${config.selector}" not found in slide ${slideIndex}`);
+            return;
+          }
+
+          const img = document.createElement('img');
+          img.src = config.image;
+          img.className = 'deck-meme-img';
+          img.alt = '';
+          img.style.width = config.width;
+          img.style.marginTop = config.marginTop;
+          if (config.marginBottom) img.style.marginBottom = config.marginBottom;
+          img.setAttribute('aria-hidden', 'true');
+
+          img.onerror = () => {
+            console.warn(`[deck-stage:memes] Failed to load: ${config.image}`);
+          };
+
+          anchor.parentNode.insertBefore(img, anchor.nextSibling);
+        } catch (e) {
+          console.warn(`[deck-stage:memes] Error injecting meme for slide ${slideIndex}:`, e);
+        }
+      });
+
+      this._memesInjected = true;
+      this._restoreMemeState();
     }
 
     _collectSlides() {
@@ -581,6 +694,8 @@
         // 1..9 jump to that slide; 0 jumps to 10.
         const n = key === '0' ? 9 : parseInt(key, 10) - 1;
         if (n < this._slides.length) this._go(n, 'keyboard');
+      } else if (key === 'm' || key === 'M') {
+        this._toggleMemes();
       } else {
         handled = false;
       }
@@ -600,6 +715,37 @@
       }
       this._index = clamped;
       this._applyIndex({ showOverlay: true, broadcast: true, reason });
+    }
+
+    _toggleMemes() {
+      this._memesVisible = !this._memesVisible;
+      this._applyMemeState();
+      this._persistMemeState();
+      this._flashOverlay();
+    }
+
+    _applyMemeState() {
+      if (this._memesVisible) {
+        document.body.setAttribute('data-deck-memes-visible', '');
+      } else {
+        document.body.removeAttribute('data-deck-memes-visible');
+      }
+    }
+
+    _restoreMemeState() {
+      try {
+        const raw = localStorage.getItem(this._memeStorageKey);
+        if (raw === 'true') {
+          this._memesVisible = true;
+          this._applyMemeState();
+        }
+      } catch (e) { /* ignore */ }
+    }
+
+    _persistMemeState() {
+      try {
+        localStorage.setItem(this._memeStorageKey, String(this._memesVisible));
+      } catch (e) { /* ignore */ }
     }
 
     // Public API ------------------------------------------------------------
