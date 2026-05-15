@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="deck-stage.js"></script>
+<script type="module" src="deck-stage.js"></script>
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
@@ -18,6 +18,21 @@
 <style>
   html, body { margin: 0; padding: 0; background: #000; }
   deck-stage { --deck-bg: #000; }
+
+  /* Meme overlays: nodes live in slide markup; visibility toggled with M / deck button */
+  .deck-meme-img {
+    display: none;
+    max-width: 100%;
+    height: auto;
+    pointer-events: none;
+  }
+  [data-deck-memes-visible] .deck-meme-img {
+    display: block;
+  }
+  @media print {
+    .deck-meme-img { display: none !important; }
+    [data-deck-memes-visible] .deck-meme-img { display: block !important; }
+  }
 
   section {
     box-sizing: border-box;
@@ -125,6 +140,8 @@
   /* ───────────────────────────────────────────── */
   .s-journey { background: #fff; }
 
+  .s-journey .deck-meme-journey { width: 400px; max-width: 100%; margin-top: 32px; }
+
   .s-journey .anchor { position: absolute; left: 96px; top: 180px; width: 620px; }
   .s-journey .anchor .eyebrow { margin-bottom: 28px; }
   .s-journey .anchor h2 { font-family: 'Replica', var(--font-sans); font-weight: 400; font-size: 64px; line-height: 1.0; letter-spacing: -0.018em; margin: 0; color: var(--fg); }
@@ -183,7 +200,9 @@
   .s-two .head { position: absolute; left: 96px; right: 96px; top: 180px; z-index: 4; }
   .s-two .head .eyebrow { color: var(--fg-subtle); margin-bottom: 24px; }
   .s-two .head h2 { font-family: var(--font-sans); font-weight: 400; font-size: 54px; line-height: 1.05; color: var(--fg); max-width: 1100px; letter-spacing: -0.015em; margin: 0; }
-  .s-two .split { position: absolute; left: 96px; right: 96px; bottom: 110px; top: 380px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  .s-two .split { position: absolute; left: 96px; right: 96px; bottom: 110px; top: 380px; display: grid; grid-template-columns: 1fr minmax(200px, 300px) 1fr; gap: 24px 28px; align-items: stretch; }
+  .s-two .deck-meme-bridge { display: flex; align-items: center; justify-content: center; align-self: stretch; min-height: 0; padding: 8px 0; }
+  .s-two .deck-meme-bridge .deck-meme-two-cols { width: 100%; max-width: 280px; height: auto; max-height: min(520px, 70vh); object-fit: contain; }
   .s-two .col { padding: 56px; color: var(--fg); position: relative; display: flex; flex-direction: column; background: transparent; border: 2px solid var(--fg); }
   .s-two .col.blue { border-color: var(--aos-lviv-blue-100); }
   .s-two .col.orange { border-color: var(--aos-austin-orange-100); }
@@ -212,7 +231,8 @@
   .s-token .eyebrow { color: var(--aos-austin-orange-100); margin-bottom: 28px; }
   .s-token .top h2 { font-family: var(--font-sans); font-weight: 400; font-size: 84px; line-height: 1.0; letter-spacing: -0.018em; color: var(--fg); margin: 0; }
   .s-token .top h2 em { font-style: normal; color: var(--aos-austin-orange-100); font-family: var(--font-display); }
-  .s-token .top .lede { font-family: var(--font-sans); font-weight: 400; font-size: 22px; line-height: 1.45; color: var(--fg-muted); margin-top: 36px; max-width: 720px; }
+  .s-token .top .deck-meme-token { width: 240px; max-width: 40%; margin-top: 20px; height: auto; }
+  .s-token .top .lede { font-family: var(--font-sans); font-weight: 400; font-size: 22px; line-height: 1.45; color: var(--fg-muted); margin-top: 28px; max-width: 720px; }
   .s-token .top .lede em { font-style: normal; color: var(--aos-austin-orange-100); font-weight: 700; }
   .s-token .top .lede b { color: var(--fg); font-weight: 700; }
 
@@ -261,7 +281,9 @@
   /* SLIDE 09 · Demo checklist                     */
   /* ───────────────────────────────────────────── */
   .s-demo { background: #fff; }
-  .s-demo .top { position: absolute; left: 96px; right: 96px; top: 180px; }
+  .s-demo .top { position: absolute; left: 96px; right: 96px; top: 180px; display: flex; flex-direction: row; align-items: flex-start; justify-content: space-between; gap: 40px; }
+  .s-demo .top .top-copy { flex: 1; min-width: 0; }
+  .s-demo .deck-meme-demo { flex: 0 0 auto; width: min(360px, 30%); max-width: 380px; max-height: 320px; object-fit: contain; align-self: center; }
   .s-demo .top h2 { font-family: var(--font-display); font-weight: 400; font-size: 100px; line-height: 0.98; letter-spacing: -0.018em; max-width: 1300px; margin: 0; }
   .s-demo .top h2 em { font-style: normal; color: var(--aos-austin-orange-100); }
   .s-demo .top .lede { margin-top: 32px; font-family: var(--font-mono); font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-subtle); }
@@ -303,7 +325,9 @@
   /* SLIDE 12 · Recap                               */
   /* ───────────────────────────────────────────── */
   .s-recap { background: #fff; }
-  .s-recap .top { position: absolute; left: 96px; right: 96px; top: 180px; }
+  .s-recap .top { position: absolute; left: 96px; right: 96px; top: 180px; display: flex; flex-direction: row; align-items: flex-start; justify-content: space-between; gap: 40px; }
+  .s-recap .top .top-copy { flex: 1; min-width: 0; }
+  .s-recap .deck-meme-recap { flex: 0 0 auto; width: min(400px, 28%); max-height: 300px; object-fit: contain; align-self: flex-start; margin-top: 8px; }
   .s-recap .top h2 { font-family: var(--font-display); font-weight: 400; font-size: 120px; line-height: 0.96; letter-spacing: -0.018em; max-width: 1500px; margin: 0; }
   .s-recap .top h2 em { font-style: normal; color: var(--aos-austin-orange-100); }
   .s-recap .takeaways { position: absolute; left: 96px; right: 96px; bottom: 220px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
@@ -505,6 +529,7 @@
     <div class="anchor">
       <div class="eyebrow">MY JOURNEY · FROM SKEPTIC TO ORCHESTRATOR</div>
       <h2>Five beats from <em>fear</em><br>to <em>flow.</em></h2>
+      <img class="deck-meme-img deck-meme-journey" src="img/wolf-meme.gif" alt="" aria-hidden="true">
       <p class=”sub”>”If you don't know where you are going, any road will get you there.”<br>Lewis Carroll, Alice in Wonderland</p>
     </div>
 
@@ -629,6 +654,10 @@
         </ul>
       </div>
 
+      <div class="deck-meme-bridge" aria-hidden="true">
+        <img class="deck-meme-img deck-meme-two-cols" src="img/claude-meme.png" alt="" aria-hidden="true">
+      </div>
+
       <div class="col orange">
         <h3 class="name">Claude Code</h3>
         <div class="stance">AUTONOMY SIDE · AGENT-FIRST</div>
@@ -653,8 +682,6 @@
             <span class="k">05</span>
             <span class="v"><b>Context / Cost</b>Tells you what the token tab looks like before your manager does.</span>
           </li>
-        </ul>
-      </div>
         </ul>
       </div>
     </div>
@@ -702,6 +729,7 @@
     <div class="top">
       <div class="eyebrow">WHERE MOST DEVS BLOW IT</div>
       <h2>Every bad prompt shows up on the <em>bill.</em></h2>
+      <img class="deck-meme-img deck-meme-token" src="img/one-shot-meme.webp" alt="" aria-hidden="true">
       <p class="lede">If the agent is going in circles, the problem wasn't well defined, and that's on us. Each "let me try again…" ticks the tab up.</p>
     </div>
 
@@ -814,9 +842,12 @@
     </div>
 
     <div class="top">
-      <div class="eyebrow" style="margin-bottom: 28px;">DEMO BRIEF · WHAT TO WATCH FOR</div>
-      <h2>Before we open the IDE <br>here's the <em>game plan.</em></h2>
-      <div class="lede">— THE INTERESTING MOMENT IS WHEN THE DEV STEPS IN AND EXPLAINS WHY.</div>
+      <div class="top-copy">
+        <div class="eyebrow" style="margin-bottom: 28px;">DEMO BRIEF · WHAT TO WATCH FOR</div>
+        <h2>Before we open the IDE <br>here's the <em>game plan.</em></h2>
+        <div class="lede">— THE INTERESTING MOMENT IS WHEN THE DEV STEPS IN AND EXPLAINS WHY.</div>
+      </div>
+      <img class="deck-meme-img deck-meme-demo" src="img/production-meme.webp" alt="" aria-hidden="true">
     </div>
 
     <div class="checks">
@@ -936,8 +967,11 @@
     </div>
 
     <div class="top">
-      <div class="eyebrow" style="margin-bottom: 28px;">WHAT TO TAKE TO YOUR NEXT SPRINT</div>
-      <h2>Four things to<br>remember <em>tomorrow.</em></h2>
+      <div class="top-copy">
+        <div class="eyebrow" style="margin-bottom: 28px;">WHAT TO TAKE TO YOUR NEXT SPRINT</div>
+        <h2>Four things to<br>remember <em>tomorrow.</em></h2>
+      </div>
+      <img class="deck-meme-img deck-meme-recap" src="img/context-meme.jpeg" alt="" aria-hidden="true">
     </div>
 
     <div class="takeaways">

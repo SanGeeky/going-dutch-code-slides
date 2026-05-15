@@ -48,16 +48,17 @@
  *   - data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text"
  */
 
-(() => {
-  const DESIGN_W_DEFAULT = 1920;
-  const DESIGN_H_DEFAULT = 1080;
-  const STORAGE_PREFIX = 'deck-stage:slide:';
-  const OVERLAY_HIDE_MS = 1800;
-  const VALIDATE_ATTR = 'no_overflowing_text,no_overlapping_text,slide_sized_text';
+import { restoreMemeState, toggleMemes } from './deck-memes.js';
 
-  const pad2 = (n) => String(n).padStart(2, '0');
+const DESIGN_W_DEFAULT = 1920;
+const DESIGN_H_DEFAULT = 1080;
+const STORAGE_PREFIX = 'deck-stage:slide:';
+const OVERLAY_HIDE_MS = 1800;
+const VALIDATE_ATTR = 'no_overflowing_text,no_overlapping_text,slide_sized_text';
 
-  const stylesheet = `
+const pad2 = (n) => String(n).padStart(2, '0');
+
+const stylesheet = `
     :host {
       position: fixed;
       inset: 0;
@@ -200,6 +201,28 @@
       background: rgba(255,255,255,0.12);
       border-radius: 4px;
     }
+    .btn.meme {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      padding: 0 10px 0 12px;
+      gap: 6px;
+      color: rgba(255,255,255,0.72);
+    }
+    .btn.meme .kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 10px;
+      line-height: 1;
+      color: rgba(255,255,255,0.88);
+      background: rgba(255,255,255,0.12);
+      border-radius: 4px;
+    }
 
     .count {
       font-variant-numeric: tabular-nums;
@@ -265,7 +288,7 @@
     }
   `;
 
-  class DeckStage extends HTMLElement {
+class DeckStage extends HTMLElement {
     static get observedAttributes() { return ['width', 'height', 'noscale']; }
 
     constructor() {
@@ -297,6 +320,7 @@
       this._render();
       this._loadNotes();
       this._syncPrintPageRule();
+      restoreMemeState();
       window.addEventListener('keydown', this._onKey);
       window.addEventListener('resize', this._onResize);
       window.addEventListener('mousemove', this._onMouseMove, { passive: true });
@@ -371,11 +395,16 @@
         </button>
         <span class="divider"></span>
         <button class="btn reset" type="button" aria-label="Reset to first slide" title="Reset (R)">Reset<span class="kbd">R</span></button>
+        <button class="btn meme" type="button" aria-label="Toggle meme images" title="Memes (M)">Meme<span class="kbd">M</span></button>
       `;
 
       overlay.querySelector('.prev').addEventListener('click', () => this._go(this._index - 1, 'click'));
       overlay.querySelector('.next').addEventListener('click', () => this._go(this._index + 1, 'click'));
       overlay.querySelector('.reset').addEventListener('click', () => this._go(0, 'click'));
+      overlay.querySelector('.meme').addEventListener('click', () => {
+        toggleMemes();
+        this._flashOverlay();
+      });
 
       this._root.append(style, stage, tapzones, overlay);
       this._canvas = canvas;
@@ -581,6 +610,8 @@
         // 1..9 jump to that slide; 0 jumps to 10.
         const n = key === '0' ? 9 : parseInt(key, 10) - 1;
         if (n < this._slides.length) this._go(n, 'keyboard');
+      } else if (key === 'm' || key === 'M') {
+        toggleMemes();
       } else {
         handled = false;
       }
@@ -613,9 +644,8 @@
     next() { this._go(this._index + 1, 'api'); }
     prev() { this._go(this._index - 1, 'api'); }
     reset() { this._go(0, 'api'); }
-  }
+}
 
-  if (!customElements.get('deck-stage')) {
-    customElements.define('deck-stage', DeckStage);
-  }
-})();
+if (!customElements.get('deck-stage')) {
+  customElements.define('deck-stage', DeckStage);
+}
